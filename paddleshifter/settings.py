@@ -74,19 +74,36 @@ WSGI_APPLICATION = 'paddleshifter.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
-import dj_database_url
-if 'POSTGRESQL_DB' in os.environ:
-    os.environ['DATABASE_URL'] = 'postgres://%s:%s@%s:5432/%s' % (
-        os.environ.get('POSTGRESQL_USERNAME', 'postgres'),
-        os.environ.get('POSTGRESQL_PASSWORD', ''),
-        os.environ.get('POSTGRESQL_HOST', 'localhost'),
-        os.environ.get('POSTGRESQL_DB', 'postgres')
-    )
-    
-DATABASES = {
-    'default': dj_database_url.config(conn_max_age=3600,
-                                      default='sqlite:///django.db')
-}
+CONFIG_MOUNT_PATHS = [
+    '/etc/config',
+    '/etc/secret-volume'
+]
+
+def database_param(key, default=None):
+    for path in CONFIG_MOUNT_PATHS:
+        if os.path.exists(os.path.join(path, key)):
+            return open(os.path.join(path, key)).read()
+    if key.upper().replace('-', '_') in os.environ:
+        return os.environ(key.upper().replace('-', '_'))
+    return default
+
+if any([os.path.exists(path) for path in CONFIG_MOUNT_PATHS]):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': database_param('database-name', 'postgres'),
+            'USER': database_param('database-user', 'postgres'),
+            'PASSWORD': database_param('database-password', ''),
+            'HOST': database_param('database-host', '127.0.0.1'),
+            'PORT': database_param('database-post', '5432')
+        }
+    }
+else:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=3600,
+                                          default='sqlite:///django.db')
+    }
 
 
 # Password validation
