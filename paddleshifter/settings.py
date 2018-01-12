@@ -75,6 +75,14 @@ WSGI_APPLICATION = 'paddleshifter.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 import dj_database_url
+if 'POSTGRESQL_DB' in os.environ:
+    os.environ['DATABASE_URL'] = 'postgres://%s:%s@%s:5432/%s' % (
+        os.environ.get('POSTGRESQL_USERNAME', 'postgres'),
+        os.environ.get('POSTGRESQL_PASSWORD', ''),
+        os.environ.get('POSTGRESQL_HOST', 'localhost'),
+        os.environ.get('POSTGRESQL_DB', 'postgres')
+    )
+    
 DATABASES = {
     'default': dj_database_url.config(conn_max_age=3600,
                                       default='sqlite:///django.db')
