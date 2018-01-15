@@ -95,7 +95,7 @@ if any([os.path.exists(path) for path in CONFIG_MOUNT_PATHS]):
             'USER': database_param('database-user', 'postgres'),
             'PASSWORD': database_param('database-password', ''),
             'HOST': database_param('database-host', '127.0.0.1'),
-            'PORT': database_param('database-post', '5432')
+            'PORT': database_param('database-port', '5432')
         }
     }
 else:
